@@ -16,7 +16,7 @@ function serialize(obj, options = {}) {
     copyToClipboard,
   } = {
     space: 0,
-    useCircularPath: true,
+    useCircularPath: false,
     removeFunction: false,
     removeCircular: false,
     removeNull: false,
@@ -34,7 +34,14 @@ function serialize(obj, options = {}) {
   /**
    * 将一个对象转换成可以安全 stringify 的对象
    */
-  function safe(obj, pathPrefix = "$root") {
+  function safe(obj, path = "$root", key = '') {
+    if (removeKeyFilter && key && removeKeyFilter(key)) {
+      return "$remove";
+    }
+    if (removePathFilter && removePathFilter(path)) {
+      return "$remove";
+    }
+
     if (obj === null) {
       if (removeNull) {
         return "$remove";
@@ -65,10 +72,10 @@ function serialize(obj, options = {}) {
     }
     // 如果是对象或数组，则缓存到 objMap 中，方便后续检查是否存在循环引用
     if (Array.isArray(obj)) {
-      objMap.set(obj, pathPrefix);
+      objMap.set(obj, path);
       let result = [];
       obj.forEach((value, index) => {
-        const newValue = safe(value, `${pathPrefix}[${index}]`);
+        const newValue = safe(value, `${path}[${index}]`);
         if (newValue === "$remove") {
           // should be removed
         } else {
@@ -81,10 +88,10 @@ function serialize(obj, options = {}) {
       return result;
     }
     if (typeof obj === "object") {
-      objMap.set(obj, pathPrefix);
+      objMap.set(obj, path);
       let result = {};
       Object.entries(obj).forEach(([key, value]) => {
-        const newValue = safe(value, `${pathPrefix}.${key}`);
+        const newValue = safe(value, `${path}.${key}`, key);
         if (newValue === "$remove") {
           // should be removed
         } else {
@@ -95,12 +102,6 @@ function serialize(obj, options = {}) {
         return "$remove";
       }
       return result;
-    }
-    if (removeKeyFilter && !pathPrefix.endsWith(']') && removeKeyFilter(pathPrefix.match(/[^.]+$/)?.[0])) {
-      return "$remove";
-    }
-    if (removePathFilter && removePathFilter(pathPrefix)) {
-      return "$remove";
     }
     // 其他情况直接返回
     return obj;

@@ -9,7 +9,11 @@ Serialize any object, stringify, print to console, and write to clipboard
 将代码 [serialize.js](./serialize.js) 直接复制到浏览器控制台中使用。
 
 ```js
-serialize(window.someVariable, options);
+serialize(window.someVariable, {
+  space: 2,
+  useCircularPath: true,
+  removeKeyFilter: (key) => key.startsWith('_'),
+});
 ```
 
 ## 参数
@@ -17,7 +21,7 @@ serialize(window.someVariable, options);
 参数 | 描述 | 类型 | 默认值
 --- | --- | --- | ---
 `space` | 缩进空格数，`0` 则会输出为单行字符串 | `number` | `0`
-`useCircularPath` | 遇到循环引用时，是否输出引用路径。选是会将循环引用转为路径字符串 `$root.foo.bar`，选否则会转为 `$circular` | `boolean` | `true`
+`useCircularPath` | 遇到循环引用时，是否输出引用路径。选是会将循环引用转为路径字符串 `$root.foo.bar`，选否则会转为 `$circular` | `boolean` | `false`
 `removeFunction` | 是否删除所有函数 | `boolean` | `false`
 `removeCircular` | 是否删除循环引用 | `boolean` | `false`
 `removeNull` | 是否删除 `null` | `boolean` | `false`
